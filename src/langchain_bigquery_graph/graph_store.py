@@ -842,7 +842,7 @@ class BigQueryGraphSchema:
 
 
 class BigQueryGraphStore(GraphStore):
-    """BigQuery Property Graph implementation of GraphStore."""
+    """BigQuery Graph implementation of GraphStore."""
 
     def __init__(
         self,

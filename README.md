@@ -1,10 +1,10 @@
 # langchain-bigquery-graph
 
-LangChain integration for [BigQuery Property Graph](https://cloud.google.com/bigquery/docs/graph-overview). Provides a `GraphStore` implementation and two retriever classes for building Graph RAG applications with BigQuery.
+LangChain integration for [BigQuery Graph](https://cloud.google.com/bigquery/docs/graph-overview). Provides a `GraphStore` implementation and two retriever classes for building Graph RAG applications with BigQuery.
 
 ## Features
 
-- **BigQueryGraphStore** -- `GraphStore` interface for BigQuery Property Graphs (schema management, GQL queries, graph document ingestion)
+- **BigQueryGraphStore** -- `GraphStore` interface for BigQuery Graphs (schema management, GQL queries, graph document ingestion)
 - **BigQueryGraphVectorContextRetriever** -- Vector similarity search on graph nodes with optional multi-hop neighborhood expansion
 - **BigQueryGraphTextToGQLRetriever** -- LLM-powered natural language to GQL translation with optional few-shot examples
 
