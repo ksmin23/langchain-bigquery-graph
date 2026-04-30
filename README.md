@@ -280,7 +280,11 @@ All tests use mocked BigQuery clients and do not require a real BigQuery connect
 ## Related Projects
 
 - [langchain-google-spanner-python](https://github.com/googleapis/langchain-google-spanner-python) -- Spanner Graph integration that this project is based on
-- [lightrag-bigquery](https://github.com/ksmin23/lightrag-bigquery) -- BigQuery storage backend for LightRAG
+- [LightRAG](https://github.com/HKUDS/LightRAG) -- Simple and Fast Retrieval-Augmented Generation that incorporates graph structures into text indexing and retrieval processes.
+  - [lightrag-bigquery](https://github.com/ksmin23/lightrag-bigquery) -- BigQuery storage backend for [LightRAG](https://github.com/HKUDS/LightRAG)
+- [PathRAG](https://github.com/ksmin23/PathRAG) -- A Path-based Retrieval-Augmented Generation (PathRAG) library. Contributed the Google Cloud Spanner storage backend (Graph, Vector, KV) and LiteLLM/Gemini model support to the original framework.
+  - [pathrag-bigquery](https://github.com/ksmin23/pathrag-bigquery) -- A Google Cloud BigQuery storage plugin for [PathRAG](https://github.com/ksmin23/PathRAG). It provides KV Vector, and Graph storage classes as an external plugin — no modifications to PathRAG source code required.
+
 
 ## License
 
