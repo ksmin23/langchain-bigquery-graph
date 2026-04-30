@@ -79,7 +79,7 @@ def example_graph_store(project_id, location, dataset_id, graph_name, embedding_
     return store
 
 
-def example_vector_retriever(store, embedding_model_name):
+def example_graph_vector_context_retriever(store, embedding_model_name):
     """Use the vector context retriever."""
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     store = example_graph_store(args.project_id, args.location, args.dataset_id, args.graph_name, args.embedding_model)
-    example_vector_retriever(store, args.embedding_model)
+    example_graph_vector_context_retriever(store, args.embedding_model)
     example_text_to_gql_retriever(store, args.dataset_id, args.graph_name, args.llm_model, args.embedding_model)
 
     if args.cleanup:
