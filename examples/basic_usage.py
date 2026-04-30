@@ -38,9 +38,23 @@ def _env(name, *fallbacks, default=None):
     return default
 
 
+def _print_step(step: int, title: str, description: str) -> None:
+    print(f"\n{'=' * 70}")
+    print(f"  Step {step}: {title}")
+    print(f"  {description}")
+    print(f"{'=' * 70}\n")
+
+
+def _print_result(label: str, value) -> None:
+    print(f"  [{label}] {value}\n")
+
+
 def example_graph_store(project_id, location, dataset_id, graph_name, embedding_model_name):
     """Create a graph store and add documents."""
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+    _print_step(1, "Create BigQueryGraphStore",
+                "Initialize a graph store connected to your BigQuery dataset.")
 
     store = BigQueryGraphStore(
         project_id=project_id,
@@ -48,12 +62,19 @@ def example_graph_store(project_id, location, dataset_id, graph_name, embedding_
         graph_name=graph_name,
         location=location,
     )
+    print(f"  Graph store created: project={project_id}, dataset={dataset_id}, graph={graph_name}")
+
+    _print_step(2, "Generate Embeddings",
+                "Compute vector embeddings for each node using the embedding model.")
 
     embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model_name)
     texts = ["Alice is a 30 year old person", "Bob is a 25 year old person", "Acme Corp is a company"]
     vectors = embeddings.embed_documents(texts)
+    print(f"  Generated {len(vectors)} embeddings (dim={len(vectors[0])}) using {embedding_model_name}")
 
-    # Create graph documents with embeddings for vector search
+    _print_step(3, "Build Graph Documents",
+                "Define nodes (Person, Company) and relationships (WORKS_AT, KNOWS).")
+
     alice = Node(id="alice", type="Person", properties={"name": "Alice", "age": 30, "embedding": vectors[0]})
     bob = Node(id="bob", type="Person", properties={"name": "Bob", "age": 25, "embedding": vectors[1]})
     acme = Node(id="acme", type="Company", properties={"name": "Acme Corp", "embedding": vectors[2]})
@@ -67,14 +88,22 @@ def example_graph_store(project_id, location, dataset_id, graph_name, embedding_
         source=Document(page_content="Alice works at Acme Corp and knows Bob."),
     )
 
-    store.add_graph_documents([doc])
-    print("Schema:", store.get_schema)
+    print(f"  Nodes:         {', '.join(n.id + ' (' + n.type + ')' for n in doc.nodes)}")
+    print(f"  Relationships: {', '.join(r.source.id + ' -[' + r.type + ']-> ' + r.target.id for r in doc.relationships)}")
 
-    # Query using GQL
-    results = store.query(
-        f"GRAPH `{dataset_id}`.`{graph_name}` MATCH (p:Person) RETURN p.name AS name"
-    )
-    print("Query results:", results)
+    _print_step(4, "Ingest Graph Documents",
+                "Create tables, property graph DDL, and insert data into BigQuery.")
+
+    store.add_graph_documents([doc])
+    _print_result("Schema", store.get_schema)
+
+    _print_step(5, "Query with GQL",
+                "Run a GQL query to retrieve all Person nodes from the property graph.")
+
+    gql = f"GRAPH `{dataset_id}`.`{graph_name}` MATCH (p:Person) RETURN p.name AS name"
+    print(f"  GQL: {gql}")
+    results = store.query(gql)
+    _print_result("Results", results)
 
     return store
 
@@ -82,6 +111,9 @@ def example_graph_store(project_id, location, dataset_id, graph_name, embedding_
 def example_graph_vector_context_retriever(store, embedding_model_name):
     """Use the vector context retriever."""
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+    _print_step(6, "Vector Context Retriever",
+                "Search graph nodes by vector similarity, then expand results via graph traversal.")
 
     embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model_name)
 
@@ -94,18 +126,26 @@ def example_graph_vector_context_retriever(store, embedding_model_name):
         top_k=5,
         k=10,
     )
+    print(f"  Config: label_expr=Person, expand_by_hops=1, top_k=5, distance=COSINE")
 
-    docs = retriever.invoke("Who works at Acme?")
-    for doc in docs:
-        print(doc.page_content)
+    question = "Who works at Acme?"
+    print(f"  Question: \"{question}\"")
+    docs = retriever.invoke(question)
+    print(f"  Retrieved {len(docs)} document(s):")
+    for i, doc in enumerate(docs, 1):
+        print(f"    [{i}] {doc.page_content}")
 
 
 def example_text_to_gql_retriever(store, dataset_id, graph_name, llm_model_name, embedding_model_name):
     """Use the text-to-GQL retriever."""
     from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
+    _print_step(7, "Text-to-GQL Retriever",
+                "Translate a natural language question into GQL using an LLM and execute it.")
+
     llm = ChatGoogleGenerativeAI(model=llm_model_name)
     embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model_name)
+    print(f"  LLM: {llm_model_name}")
 
     retriever = BigQueryGraphTextToGQLRetriever.from_params(
         llm=llm,
@@ -114,14 +154,23 @@ def example_text_to_gql_retriever(store, dataset_id, graph_name, llm_model_name,
         k=10,
     )
 
-    retriever.add_example(
-        question="Who works at Acme?",
-        gql=f"GRAPH `{dataset_id}`.`{graph_name}` MATCH (p:Person)-[:WORKS_AT]->(c:Company {{name: 'Acme Corp'}}) RETURN p.name AS name",
-    )
+    _print_step(8, "Add Few-Shot Example",
+                "Provide a sample question-GQL pair to guide the LLM's query generation.")
 
-    docs = retriever.invoke("Find all people who work at Acme Corp")
-    for doc in docs:
-        print(doc.page_content)
+    example_gql = f"GRAPH `{dataset_id}`.`{graph_name}` MATCH (p:Person)-[:WORKS_AT]->(c:Company {{name: 'Acme Corp'}}) RETURN p.name AS name"
+    retriever.add_example(question="Who works at Acme?", gql=example_gql)
+    print(f"  Example Q: \"Who works at Acme?\"")
+    print(f"  Example GQL: {example_gql}")
+
+    _print_step(9, "Invoke Text-to-GQL",
+                "Ask a new question — the LLM generates GQL using the schema and few-shot examples.")
+
+    question = "Find all people who work at Acme Corp"
+    print(f"  Question: \"{question}\"")
+    docs = retriever.invoke(question)
+    print(f"  Retrieved {len(docs)} document(s):")
+    for i, doc in enumerate(docs, 1):
+        print(f"    [{i}] {doc.page_content}")
 
 
 if __name__ == "__main__":
@@ -144,9 +193,21 @@ if __name__ == "__main__":
                         help="Remove graph, tables, and all data after running")
     args = parser.parse_args()
 
+    print("\n" + "=" * 70)
+    print("  langchain-bigquery-graph — Basic Usage Example")
+    print("=" * 70)
+
     store = example_graph_store(args.project_id, args.location, args.dataset_id, args.graph_name, args.embedding_model)
     example_graph_vector_context_retriever(store, args.embedding_model)
     example_text_to_gql_retriever(store, args.dataset_id, args.graph_name, args.llm_model, args.embedding_model)
 
     if args.cleanup:
+        print(f"\n{'=' * 70}")
+        print("  Cleanup: Removing property graph and all associated tables...")
+        print(f"{'=' * 70}\n")
         store.cleanup()
+        print("  Done.")
+
+    print(f"\n{'=' * 70}")
+    print("  All steps completed successfully!")
+    print(f"{'=' * 70}\n")
