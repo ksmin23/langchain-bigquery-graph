@@ -251,8 +251,7 @@ langchain-bigquery-graph/
 ├── tests/
 │   ├── test_graph_store.py
 │   └── test_graph_retriever.py
-├── examples/
-│   └── basic_usage.py
+├── examples/                  # Jupyter notebooks and Python example scripts
 └── pyproject.toml
 ```
 
