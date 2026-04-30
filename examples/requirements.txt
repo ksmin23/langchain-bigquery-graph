@@ -1,0 +1,1 @@
+langchain-bigquery-graph[examples]

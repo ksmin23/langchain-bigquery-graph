@@ -1,0 +1,31 @@
+[project]
+name = "langchain-bigquery-graph"
+version = "0.1.0"
+description = "LangChain integration for BigQuery Property Graph - GraphStore and Retrievers"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "langchain-core>=1.0.0",
+    "langchain>=1.0.0",
+    "langchain-community>=0.3.0",
+    "google-cloud-bigquery>=3.0.0",
+    "pydantic>=2.0",
+    "requests",
+]
+
+[project.optional-dependencies]
+examples = [
+    "python-dotenv>=1.0.0",
+    "langchain-google-genai>=2.0.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-mock>=3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/langchain_bigquery_graph"]
