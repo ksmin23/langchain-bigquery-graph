@@ -652,6 +652,82 @@ def _make_bq_param(name: str, bq_type: str, value: Any):
 
 
 # ---------------------------------------------------------------------------
+# INFORMATION_SCHEMA normalization (camelCase → snake_case)
+# ---------------------------------------------------------------------------
+
+
+def _normalize_info_schema(info_schema: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert BigQuery INFORMATION_SCHEMA camelCase metadata to the
+    snake_case format expected by ``BigQueryGraphSchema.from_information_schema``
+    and ``ElementSchema.from_info_schema``.
+
+    If the metadata already uses snake_case keys it is returned unchanged.
+    """
+    if "node_tables" in info_schema:
+        return info_schema
+
+    all_properties: Dict[str, str] = {}
+
+    def _normalize_element(element: Dict[str, Any]) -> Dict[str, Any]:
+        label_and_props = element.get("labelAndProperties", [])
+        label_names = [lp["label"] for lp in label_and_props]
+
+        property_definitions = []
+        for lp in label_and_props:
+            for prop in lp.get("properties", []):
+                property_definitions.append({
+                    "property_declaration_name": prop["name"],
+                    "value_expression_sql": prop.get("expression", ""),
+                })
+                if "dataType" in prop:
+                    all_properties[prop["name"]] = prop["dataType"].get(
+                        "typeKind", "STRING"
+                    )
+
+        result: Dict[str, Any] = {
+            "name": element["name"],
+            "key_columns": element.get("keyColumns", []),
+            "base_table_name": element.get("dataSourceTable", {}).get(
+                "tableId", ""
+            ),
+            "label_names": label_names,
+            "property_definitions": property_definitions,
+        }
+
+        if "sourceNodeReference" in element:
+            src = element["sourceNodeReference"]
+            result["source_node_table"] = {
+                "node_table_name": src["nodeTable"],
+                "node_table_columns": src["nodeTableColumns"],
+                "edge_table_columns": src["edgeTableColumns"],
+            }
+        if "destinationNodeReference" in element:
+            dst = element["destinationNodeReference"]
+            result["destination_node_table"] = {
+                "node_table_name": dst["nodeTable"],
+                "node_table_columns": dst["nodeTableColumns"],
+                "edge_table_columns": dst["edgeTableColumns"],
+            }
+
+        return result
+
+    return {
+        "node_tables": [
+            _normalize_element(n)
+            for n in info_schema.get("nodeTables", [])
+        ],
+        "edge_tables": [
+            _normalize_element(e)
+            for e in info_schema.get("edgeTables", [])
+        ],
+        "property_declarations": [
+            {"name": name, "type": type_kind}
+            for name, type_kind in all_properties.items()
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
 # BigQueryGraphSchema
 # ---------------------------------------------------------------------------
 
@@ -724,6 +800,7 @@ class BigQueryGraphSchema:
         return ddls
 
     def from_information_schema(self, info_schema: Dict[str, Any]) -> None:
+        info_schema = _normalize_info_schema(info_schema)
         property_decls = info_schema.get("property_declarations", [])
         decl_by_types = CaseInsensitiveDict(
             {decl["name"]: decl["type"] for decl in property_decls}
