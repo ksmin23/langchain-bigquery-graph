@@ -1,1 +1,4 @@
+bigquery-magics[spanner-graph-notebook]==0.14.0
 langchain-bigquery-graph[examples] @ git+https://github.com/ksmin23/langchain-bigquery-graph.git
+langchain-experimental==0.4.1
+pandas==2.3.3
