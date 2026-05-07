@@ -513,12 +513,15 @@ class ElementSchema:
 
         if self.name == new_schema.name:
             for k, v in new_schema.properties.items():
-                if k in self.properties and self.properties[k].casefold() != v.casefold():
-                    raise ValueError(
-                        "Property `{}` definition mismatch: got {}, expected {}".format(
-                            k, v, self.properties[k]
+                if k in self.properties:
+                    old_v = self.properties[k].strip("`").casefold()
+                    new_v = v.strip("`").casefold()
+                    if old_v != new_v:
+                        raise ValueError(
+                            "Property `{}` definition mismatch: got {}, expected {}".format(
+                                k, v, self.properties[k]
+                            )
                         )
-                    )
         for k, v in new_schema.types.items():
             if k in self.types and self.types[k] != v:
                 raise ValueError(
