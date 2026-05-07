@@ -83,7 +83,7 @@ print(results)
 Search graph nodes by vector similarity and optionally expand results by traversing the graph neighborhood. Vector search runs as SQL on the base table (since BigQuery property graphs don't support ARRAY properties), while graph traversal uses GQL.
 
 ```python
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_bigquery_graph import BigQueryGraphVectorContextRetriever
 
 embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
@@ -130,10 +130,10 @@ retriever = BigQueryGraphVectorContextRetriever.from_params(
 Translate natural language questions into GQL queries using an LLM, execute them, and return the results.
 
 ```python
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 from langchain_bigquery_graph import BigQueryGraphTextToGQLRetriever
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatVertexAI(model="gemini-2.5-flash")
 
 retriever = BigQueryGraphTextToGQLRetriever.from_params(
     llm=llm,
@@ -147,7 +147,7 @@ docs = retriever.invoke("Find all people who work at Acme Corp")
 With few-shot examples for better GQL generation:
 
 ```python
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_vertexai import VertexAIEmbeddings
 
 retriever = BigQueryGraphTextToGQLRetriever.from_params(
     llm=llm,

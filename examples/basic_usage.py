@@ -138,12 +138,13 @@ def example_graph_vector_context_retriever(store, embedding_model_name):
 
 def example_text_to_gql_retriever(store, dataset_id, graph_name, llm_model_name, embedding_model_name):
     """Use the text-to-GQL retriever."""
-    from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+    from langchain_google_vertexai import ChatVertexAI
 
     _print_step(7, "Text-to-GQL Retriever",
                 "Translate a natural language question into GQL using an LLM and execute it.")
 
-    llm = ChatGoogleGenerativeAI(model=llm_model_name)
+    llm = ChatVertexAI(model=llm_model_name)
     embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model_name)
     print(f"  LLM: {llm_model_name}")
 
