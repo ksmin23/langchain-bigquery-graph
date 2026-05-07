@@ -278,6 +278,7 @@ All tests use mocked BigQuery clients and do not require a real BigQuery connect
 
 ## Related Projects
 
+- [langchain-bigquery-python](https://github.com/ksmin23/langchain-bigquery-python) -- Unified `langchain-bigquery` package combining this Graph Store with the [Hybrid Search vector store](https://github.com/ksmin23/langchain-bigquery-hybridsearch) in a single distribution
 - [langchain-google-spanner-python](https://github.com/googleapis/langchain-google-spanner-python) -- Spanner Graph integration that this project is based on
 - [LightRAG](https://github.com/HKUDS/LightRAG) -- Simple and Fast Retrieval-Augmented Generation that incorporates graph structures into text indexing and retrieval processes.
   - [lightrag-bigquery](https://github.com/ksmin23/lightrag-bigquery) -- BigQuery storage backend for [LightRAG](https://github.com/HKUDS/LightRAG)
